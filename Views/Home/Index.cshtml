@@ -1,0 +1,129 @@
+﻿@{
+    ViewData["Title"] = "Dynamics Login Page";
+}
+
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simple Web Application</title>
+    <link rel="stylesheet" href="styles.css">
+    <script defer src="script.js"></script>
+</head>
+<body>
+    <div id="app">
+        <div id="login-screen">
+            <h1>Login</h1>
+            <form id="login-form">
+                <label for="login-username">Username:</label>
+                <input type="text" id="login-username" required>
+
+                <label for="login-password">Password:</label>
+                <input type="password" id="login-password" required>
+
+                <button type="submit">Login</button>
+            </form>
+            <p>Don't have an account? <button id="show-register">Create Account</button></p>
+        </div>
+
+        <div id="register-screen" style="display: none;">
+            <h1>Create Account</h1>
+            <form id="register-form">
+                <label for="register-username">Username:</label>
+                <input type="text" id="register-username" required>
+
+                <label for="register-password">Password:</label>
+                <input type="password" id="register-password" required>
+
+                <button type="submit">Register</button>
+            </form>
+            <button id="back-to-login">Back to Login</button>
+        </div>
+
+        <div id="account-screen" style="display: none;">
+            <h1>Account Status</h1>
+            <p><strong>Username:</strong> <span id="display-username"></span></p>
+            <p><strong>Account Number:</strong> <span id="display-account-number"></span></p>
+            <p><strong>Total Dynamics Credits:</strong> <span id="display-credits">0</span></p>
+            <button id="add-credit">Add Dynamics Credit</button>
+            <button id="logout">Log Out</button>
+        </div>
+    </div>
+
+    <script>
+        const users = JSON.parse(localStorage.getItem('users')) || {};
+        let loggedInUser = null;
+
+        document.getElementById('login-form').addEventListener('submit', function(event) {
+            event.preventDefault();
+            const username = document.getElementById('login-username').value;
+            const password = document.getElementById('login-password').value;
+
+            if (users[username] && users[username].password === password) {
+                loggedInUser = username;
+                showAccountScreen();
+            } else {
+                alert('Invalid username or password.');
+            }
+        });
+
+        document.getElementById('register-form').addEventListener('submit', function(event) {
+            event.preventDefault();
+            const username = document.getElementById('register-username').value;
+            const password = document.getElementById('register-password').value;
+
+            if (users[username]) {
+                alert('Username already exists.');
+            } else {
+                const accountNumber = 'ACCT-' + Math.floor(100000 + Math.random() * 900000);
+                users[username] = { password, accountNumber, credits: 0 };
+                localStorage.setItem('users', JSON.stringify(users));
+                alert('Account created successfully. Please log in.');
+                showLoginScreen();
+            }
+        });
+
+        document.getElementById('add-credit').addEventListener('click', function() {
+            if (loggedInUser) {
+                users[loggedInUser].credits += 1;
+                localStorage.setItem('users', JSON.stringify(users));
+                document.getElementById('display-credits').textContent = users[loggedInUser].credits;
+            }
+        });
+
+        document.getElementById('logout').addEventListener('click', function() {
+            loggedInUser = null;
+            showLoginScreen();
+        });
+
+        document.getElementById('show-register').addEventListener('click', showRegisterScreen);
+        document.getElementById('back-to-login').addEventListener('click', showLoginScreen);
+
+        function showLoginScreen() {
+            document.getElementById('login-screen').style.display = 'block';
+            document.getElementById('register-screen').style.display = 'none';
+            document.getElementById('account-screen').style.display = 'none';
+        }
+
+        function showRegisterScreen() {
+            document.getElementById('login-screen').style.display = 'none';
+            document.getElementById('register-screen').style.display = 'block';
+            document.getElementById('account-screen').style.display = 'none';
+        }
+
+        function showAccountScreen() {
+            document.getElementById('login-screen').style.display = 'none';
+            document.getElementById('register-screen').style.display = 'none';
+            document.getElementById('account-screen').style.display = 'block';
+
+            document.getElementById('display-username').textContent = loggedInUser;
+            document.getElementById('display-account-number').textContent = users[loggedInUser].accountNumber;
+            document.getElementById('display-credits').textContent = users[loggedInUser].credits;
+        }
+
+        showLoginScreen();
+    </script>
+</body>
+</html>
